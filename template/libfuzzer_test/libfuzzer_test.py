@@ -17,6 +17,7 @@
 
 import logging
 import os
+import shutil
 
 from vts.runners.host import asserts
 from vts.runners.host import base_test
@@ -183,7 +184,8 @@ class LibFuzzerTest(base_test.BaseTestClass):
         inuse_seed = self.RetrieveCorpusSeed(test_case)
         if inuse_seed == 'locked':
             # skip this test case
-            logging.warning('test case locked, skipping testcase %s.', test_case.test_name)
+            logging.warning('test case locked, skipping testcase %s.',
+                            test_case.test_name)
             return
 
         fuzz_cmd = '"%s"' % test_case.GetRunCommand()
@@ -274,6 +276,15 @@ class LibFuzzerTest(base_test.BaseTestClass):
             asserts.fail('%s failed normally.' % test_case.test_name)
         elif exit_code != config.ExitCode.FUZZER_TEST_PASS:
             asserts.fail('%s failed abnormally.' % test_case.test_name)
+
+    def tearDownClass(self):
+        """Removes the temporary directory used for corpus management."""
+        logging.debug('Temporary directory %s is being deleted',
+                      self._temp_dir)
+        try:
+            shutil.rmtree(self._temp_dir)
+        except OSError as e:
+            logging.exception(e)
 
     def generateFuzzerTests(self):
         """Runs fuzzer tests."""

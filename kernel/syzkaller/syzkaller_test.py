@@ -143,6 +143,15 @@ class SyzkallerTest(base_test.BaseTestClass):
             asserts.fail('%s caused crash in our device.',
                          test_case._test_name)
 
+    def tearDownClass(self):
+        """Removes the temporary directory used for Syzkaller."""
+        logging.debug('Temporary directory %s is being deleted',
+                      self._env['temp_dir'])
+        try:
+            shutil.rmtree(self._env['temp_dir'])
+        except OSError as e:
+            logging.exception(e)
+
     def generateKernelFuzzerTests(self):
         """Runs kernel fuzzer tests."""
         self.FetchSyzkaller()
